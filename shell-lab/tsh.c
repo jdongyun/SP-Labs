@@ -176,10 +176,10 @@ void eval(char *cmdline)
 
 	bg = parseline(cmdline, argv);
 
-	sigemptyset(&mask); //시그널셋 초기화
-	sigaddset(&mask, SIGCHLD);//sigchild signal add
-	sigaddset(&mask, SIGINT);//sigint signal addto set
-	sigaddset(&mask, SIGTSTP);
+	sigemptyset(&mask); //initialize signal set
+	sigaddset(&mask, SIGCHLD);//signal sigchld add
+	sigaddset(&mask, SIGINT);//signal sigint add
+	sigaddset(&mask, SIGTSTP);//signal sigtstp add
 
 	sigprocmask(SIG_BLOCK, &mask, NULL);
 	
@@ -195,7 +195,7 @@ void eval(char *cmdline)
 		}
 
 		addjob(jobs, pid, (bg == 1 ? BG: FG), cmdline);
-		sigprocmask(SIG_UNBLOCK, &mask, NULL); //signal block
+		sigprocmask(SIG_UNBLOCK, &mask, NULL); //signal unblock
 
 		if(!bg) {
 			//부모 프로세스가 자식의 종료를 대기 후 처리
@@ -273,8 +273,10 @@ void sigchld_handler(int sig)
 		} else if(WIFSIGNALED(child_status)) { //자식프로세스 종료를 체크
 			printf("Job [%d] (%d) terminated by signal %d\n", pid2jid(pid), pid, WTERMSIG(child_status));
 			deletejob(jobs, pid);//자식프로세스를 목록에서 제거
-		} else {
+		} else if(WIFEXITED(child_status)){
 			deletejob(jobs, pid);
+		} else {
+			unix_error("waitpid error\n");
 		} 
 	}
 	return;
