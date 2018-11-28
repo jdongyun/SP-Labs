@@ -62,15 +62,15 @@ int mm_init(void)
  */
 void *malloc(size_t size)
 {
-  int newsize = ALIGN(size + SIZE_T_SIZE);
-  unsigned char *p = mem_sbrk(newsize);
+  int newsize = ALIGN(size + SIZE_T_SIZE); //1111..1000 과 &연산, 이것보다 큰 8의 배수를 찾기
+  unsigned char *p = mem_sbrk(newsize); //메모리의 시작점을 0이라 하면, newsize가 16이므로 끝점은 16에 가고, 반환은 old_brk를 반환해서 0임.
   //dbg_printf("malloc %u => %p\n", size, p);
 
   if ((long)p < 0)
     return NULL;
   else {
     p += SIZE_T_SIZE;
-    *SIZE_PTR(p) = size;
+    *SIZE_PTR(p) = size; //0번지에 size(==16)을 넣음
     return p;
   }
 }
